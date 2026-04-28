@@ -1,10 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import auth from '@react-native-firebase/auth';
-import firestore from '@react-native-firebase/firestore';
 import { StatusBar } from 'react-native';
-
+import { Session } from '@supabase/supabase-js';
+import { supabase } from './src/services/supabase';
 import { LoginScreen } from './src/screens/LoginScreen';
 import { AdminDashboard } from './src/screens/AdminDashboard';
 import { OperatorScreen } from './src/screens/OperatorScreen';
@@ -14,33 +13,43 @@ import { Colors } from './src/theme';
 const Stack = createStackNavigator();
 
 const App = () => {
-  const [initializing, setInitializing] = useState(true);
-  const [user, setUser] = useState<any>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [role, setRole] = useState<string | null>(null);
-
-  function onAuthStateChanged(user: any) {
-    setUser(user);
-    if (initializing) setInitializing(false);
-  }
+  const [initializing, setInitializing] = useState(true);
 
   useEffect(() => {
-    const subscriber = auth().onAuthStateChanged(onAuthStateChanged);
-    return subscriber; // unsubscribe on unmount
+    // Get current session on mount
+    supabase.auth.getSession().then(({ data: { session: s } }) => {
+      setSession(s);
+      if (!s) setInitializing(false);
+    });
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, s) => {
+      setSession(s);
+      if (!s) {
+        setRole(null);
+        setInitializing(false);
+      }
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
+  // Fetch role whenever session changes
   useEffect(() => {
-    if (user) {
-      const fetchRole = async () => {
-        const userDoc = await firestore().collection('users').doc(user.uid).get();
-        if (userDoc.exists()) {
-          setRole(userDoc.data()?.role);
-        }
-      };
-      fetchRole();
-    } else {
-      setRole(null);
+    if (session?.user) {
+      supabase
+        .from('users')
+        .select('role')
+        .eq('id', session.user.id)
+        .single()
+        .then(({ data }) => {
+          setRole(data?.role ?? null);
+          setInitializing(false);
+        });
     }
-  }, [user]);
+  }, [session]);
 
   if (initializing) return null;
 
@@ -48,14 +57,14 @@ const App = () => {
     <NavigationContainer>
       <StatusBar barStyle="light-content" backgroundColor={Colors.background} />
       <Stack.Navigator screenOptions={{ headerShown: false, cardStyle: { backgroundColor: Colors.background } }}>
-        {!user ? (
+        {!session ? (
           <Stack.Screen name="Login" component={LoginScreen} />
         ) : (
           <>
-            {role === 'admin' && <Stack.Screen name="AdminDashboard" component={AdminDashboard} />}
-            {role === 'operator' && <Stack.Screen name="OperatorScreen" component={OperatorScreen} />}
+            {role === 'admin'    && <Stack.Screen name="AdminDashboard"    component={AdminDashboard} />}
+            {role === 'operator' && <Stack.Screen name="OperatorScreen"    component={OperatorScreen} />}
             {role === 'investor' && <Stack.Screen name="InvestorDashboard" component={InvestorDashboard} />}
-            {!role && <Stack.Screen name="Login" component={LoginScreen} />}
+            {!role               && <Stack.Screen name="Login"             component={LoginScreen} />}
           </>
         )}
       </Stack.Navigator>

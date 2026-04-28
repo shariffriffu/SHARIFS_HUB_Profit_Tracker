@@ -71,6 +71,9 @@ yarn-error.log
 serviceAccountKey.json
 google-services.json
 
+# Supabase credentials - NEVER commit these
+src/config.ts
+
 .yarn/*
 !.yarn/patches
 !.yarn/plugins

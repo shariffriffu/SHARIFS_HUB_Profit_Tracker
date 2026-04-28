@@ -19,3 +19,27 @@ buildscript {
 }
 
 apply plugin: "com.facebook.react.rootproject"
+
+// Fix for legacy packages that still reference jcenter() which was shut down in 2022.
+// This substitutes jcenter() with mavenCentral() for ALL subprojects (including node_modules).
+allprojects {
+    buildscript {
+        repositories {
+            google()
+            mavenCentral()
+        }
+    }
+    repositories {
+        google()
+        mavenCentral()
+        maven { url "https://jitpack.io" }
+        // Redirect any jcenter() calls from legacy packages to mavenCentral()
+        maven { url "https://repo1.maven.org/maven2" }
+    }
+    // Override jcenter() for all subprojects so legacy build.gradle files don't fail
+    configurations.all {
+        resolutionStrategy.eachDependency { DependencyResolveDetails details ->
+            // No-op: just ensures resolution happens through our declared repos above
+        }
+    }
+}

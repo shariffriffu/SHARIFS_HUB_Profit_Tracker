@@ -22,12 +22,12 @@ export const Spacing = {
 export const Typography = {
   h1: {
     fontSize: 32,
-    fontWeight: 'bold',
+    fontWeight: 'bold' as const,
     color: Colors.text,
   },
   h2: {
     fontSize: 24,
-    fontWeight: 'bold',
+    fontWeight: 'bold' as const,
     color: Colors.text,
   },
   body: {
@@ -38,4 +38,4 @@ export const Typography = {
     fontSize: 12,
     color: Colors.textSecondary,
   },
-};
+} as const;

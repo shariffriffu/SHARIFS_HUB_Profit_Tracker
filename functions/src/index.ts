@@ -1,4 +1,4 @@
-import * as functions from 'firebase-functions';
+import * as functions from 'firebase-functions/v1';
 import * as admin from 'firebase-admin';
 
 admin.initializeApp();
@@ -7,7 +7,7 @@ const db = admin.firestore();
 
 export const calculateProfitDistribution = functions.firestore
   .document('daily_entries/{entryId}')
-  .onCreate(async (snapshot, context) => {
+  .onCreate(async (snapshot: functions.firestore.QueryDocumentSnapshot, context: functions.EventContext) => {
     const data = snapshot.data();
     if (!data) return;
 

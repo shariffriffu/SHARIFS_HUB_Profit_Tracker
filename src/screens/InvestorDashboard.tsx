@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Dimensions, Platform } from 'react-native';
 import firestore from '@react-native-firebase/firestore';
 import auth from '@react-native-firebase/auth';
 import { Colors, Spacing, Typography } from '../theme';
@@ -63,7 +63,7 @@ export const InvestorDashboard = () => {
             <Text style={styles.progressPercent}>{progress.toFixed(1)}%</Text>
           </View>
           <View style={styles.progressBarBg}>
-            <View style={[styles.progressBarFill, { width: `${progress}%` }]} />
+            <View style={[styles.progressBarFill, { width: `${progress}%` as any }]} />
           </View>
           <Text style={styles.amountReturnedText}>₹{amountReturned.toLocaleString()} returned to date</Text>
         </View>

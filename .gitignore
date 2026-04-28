@@ -67,6 +67,10 @@ yarn-error.log
 /coverage
 
 # Yarn
+# Firebase credentials - NEVER commit these
+serviceAccountKey.json
+google-services.json
+
 .yarn/*
 !.yarn/patches
 !.yarn/plugins
